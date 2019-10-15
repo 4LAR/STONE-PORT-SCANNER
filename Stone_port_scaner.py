@@ -3,7 +3,7 @@
 #  [ Stolar Studio ]
 #
 
-ver = "0.1.1"
+ver = "0.1.2"
 
 import threading 
 import socket
@@ -57,7 +57,7 @@ else:
     ports = [[21, 22, 23, 25, 38, 43 , 999, 109, 110, 115, 118, 119, 143,  
     194, 220, 443, 540, 585, 591, 1112, 1433, 1443, 3128, 3197,
     3306, 4000, 4333, 5100, 5432, 6669, 8000, 8080, 9014, 9200, 80]]
-
+    
 if hosts_file_bool and os.path.exists(hosts_file_name):
     hosts = []
     with open(hosts_file_name) as f:
@@ -69,36 +69,43 @@ else:
     
 print('-' * 35)
 
-#open_ports = []
+open_ports = []
 
-def portscan(port):  
+def portscan(port, arr = False):  
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
     s.settimeout(0.5)  
     try:
-        connection = s.connect((target, port))  
-        #print('Port :', port, "is open.")
-        #open_ports.append(str(target) + " : " + str(port))
-        print(str(target) + " : " + str(port))
-        connection.close()   
+        connection = s.connect((target, port))
+        if not arr == True:
+            print(str(target) + " : " + str(port))
+        else:
+            open_ports.append(str(target) + " : " + str(port))
+        connection.close()
     except:
-        pass   
+        pass
+    
+def scan_host(target):
+    for element in ports[0]:
+        portscan(int(element))
+        #t.start()
+    print(target + " STOP SCANING")
+    
+def scan_host_multi(target):
+
+    for element in ports[0]:
+        t = threading.Thread(target=portscan, kwargs={'port': int(element), 'arr': True}) 
+        t.start()
+    while True:
+        if threading.active_count() < 3:
+            print('\n'.join(open_ports))
+            open_ports.clear()
+            print(target + " STOP SCANING")
+            break;
 
 if hosts_file_bool:
     for target in hosts[0]:
-        for element in ports[0]:
-            t = threading.Thread(target=portscan, kwargs={'port': int(element)}) 
-            t.start()   
+        scan_host_multi(target)
 else:
-    for element in ports[0]:
-        t = threading.Thread(target=portscan, kwargs={'port': int(element)}) 
-        t.start()
-"""
-if len(open_ports) > 0:
-    print("OPENED PORTS : \n")
-    for i in open_ports:
-        print(i)
-else:
-    print("NO OPEN PORTS FOUND")
-"""
+    scan_host_multi(target)
 
 input("\nPress enter...")
