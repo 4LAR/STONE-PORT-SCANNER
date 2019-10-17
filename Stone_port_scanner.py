@@ -3,23 +3,14 @@
 #  [ Stolar Studio ]
 #
 
-ver = "0.1.2"
+ver = "0.1.3"
 
 import threading 
 import socket
 import os
 import configparser
 
-print("""
-   _____ _                     _____           _      _____                                 
-  / ____| |                   |  __ \         | |    / ____|                                
- | (___ | |_ ___  _ __   ___  | |__) |__  _ __| |_  | (___   ___ __ _ _ __  _ __   ___ _ __ 
-  \___ \| __/ _ \| '_ \ / _ \ |  ___/ _ \| '__| __|  \___ \ / __/ _` | '_ \| '_ \ / _ \ '__|
-  ____) | || (_) | | | |  __/ | |  | (_) | |  | |_   ____) | (_| (_| | | | | | | |  __/ |   
- |_____/ \__\___/|_| |_|\___| |_|   \___/|_|   \__| |_____/ \___\__,_|_| |_|_| |_|\___|_|                                                                                                                                                                              
-""")
-print("Ver : "+ver)
-print('-' * 35)
+
 
 if not os.path.exists("settings.txt"):
     config = configparser.ConfigParser()
@@ -28,6 +19,9 @@ if not os.path.exists("settings.txt"):
     config.set("Settings", "hosts-file-name", "hosts.txt")
     config.set("Settings", "ports-file", "false")
     config.set("Settings", "ports-file-name", "ports.txt")
+    config.add_section("Visual")
+    config.set("Visual", "print-logo", "true")
+    #config.set("Visual", "print-ports", "false")
     with open("settings.txt", "w") as config_file:
         config.write(config_file)
 try:
@@ -37,8 +31,8 @@ try:
     hosts_file_name = config.get("Settings", "hosts-file-name")
     ports_file = config.get("Settings", "ports-file")
     ports_file_name = config.get("Settings", "ports-file-name")
-    
-    #ports_file = "false"
+    print_logo = config.get("Visual", "print-logo")
+    #print_ports = config.get("Visual", "print-ports")
 except:
     print("ERROR READ SETTINGS FILE")
     input("\nPress enter...")
@@ -47,23 +41,42 @@ except:
 hosts_file_bool = True if hosts_file == 'true' or hosts_file == 'True' else False
 ports_file_bool = True if ports_file == 'true' or ports_file == 'True' else False
 
+print_logo_bool = True if print_logo == 'true' or print_logo == 'True' else False
+#print_ports_bool = True if print_ports == 'true' or print_ports == 'True' else False
+
+if print_logo_bool:
+    print("""
+       _____ _                     _____           _      _____                                 
+      / ____| |                   |  __ \         | |    / ____|                                
+     | (___ | |_ ___  _ __   ___  | |__) |__  _ __| |_  | (___   ___ __ _ _ __  _ __   ___ _ __ 
+      \___ \| __/ _ \| '_ \ / _ \ |  ___/ _ \| '__| __|  \___ \ / __/ _` | '_ \| '_ \ / _ \ '__|
+      ____) | || (_) | | | |  __/ | |  | (_) | |  | |_   ____) | (_| (_| | | | | | | |  __/ |   
+     |_____/ \__\___/|_| |_|\___| |_|   \___/|_|   \__| |_____/ \___\__,_|_| |_|_| |_|\___|_|                                                                                                                                                                              
+    """)
+else:
+    print("Stone Port Scanner")
+print("Ver : "+ver)
+print('-' * 35)
+
 if ports_file_bool and os.path.exists(ports_file_name):
     ports = []
     with open(ports_file_name) as f:
         ports.append(f.read().splitlines())
-    print("PORTS : ", end = '')
+    print("PORTS : " + ports_file_name)
     print(ports)
 else:
-    ports = [[21, 22, 23, 25, 38, 43 , 999, 109, 110, 115, 118, 119, 143,  
+    ports = [[21, 22, 23, 25, 38, 43, 80, 999, 109, 110, 115, 118, 119, 143,  
     194, 220, 443, 540, 585, 591, 1112, 1433, 1443, 3128, 3197,
-    3306, 4000, 4333, 5100, 5432, 6669, 8000, 8080, 9014, 9200, 80]]
+    3306, 4000, 4333, 5100, 5432, 6669, 8000, 8080, 9014, 9200]]
+    print("PORTS : DEFAULT")
     
 if hosts_file_bool and os.path.exists(hosts_file_name):
     hosts = []
     with open(hosts_file_name) as f:
         hosts.append(f.read().splitlines())
     print("HOSTS : ", end = '')
-    print(hosts)
+    print(' | '.join(hosts[0]))
+    #print(hosts)
 else:
     target = input('Enter host : ')
     
@@ -88,18 +101,21 @@ def scan_host(target):
     for element in ports[0]:
         portscan(int(element))
         #t.start()
-    print(target + " STOP SCANING")
+    print(target + " STOP SCANNING")
     
 def scan_host_multi(target):
-
+    print(target + " START SCANNING")
     for element in ports[0]:
         t = threading.Thread(target=portscan, kwargs={'port': int(element), 'arr': True}) 
         t.start()
     while True:
         if threading.active_count() < 3:
-            print('\n'.join(open_ports))
+            if len(open_ports) > 0:
+                print('\n'.join(open_ports))
+            else:
+                print(target + " PORTS ARE NOT OPEN")
             open_ports.clear()
-            print(target + " STOP SCANING")
+            print(target + " STOP SCANNING")
             break;
 
 if hosts_file_bool:
