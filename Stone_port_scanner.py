@@ -3,7 +3,7 @@
 #  [ Stolar Studio ]
 #
 
-ver = "0.1.4"
+ver = "0.1.5"
 
 import threading 
 import socket
@@ -18,6 +18,7 @@ if not os.path.exists("settings.txt"):
     config.set("Settings", "hosts-file-name", "hosts.txt")
     config.set("Settings", "ports-file", "false")
     config.set("Settings", "ports-file-name", "ports.txt")
+    config.set("Settings", "thread", "true")
     config.add_section("Visual")
     config.set("Visual", "print-logo", "true")
     #config.set("Visual", "print-ports", "false")
@@ -31,6 +32,7 @@ try:
     hosts_file_name = config.get("Settings", "hosts-file-name")
     ports_file = config.get("Settings", "ports-file")
     ports_file_name = config.get("Settings", "ports-file-name")
+    thread = config.get("Settings", "thread")
     print_logo = config.get("Visual", "print-logo")
     #print_ports = config.get("Visual", "print-ports")
     #progress_bar = config.get("Visual", "progress-bar")
@@ -41,6 +43,7 @@ except:
 
 hosts_file_bool = True if hosts_file == 'true' or hosts_file == 'True' else False
 ports_file_bool = True if ports_file == 'true' or ports_file == 'True' else False
+thread_bool = True if thread == 'true' or thread == 'True' else False
 
 print_logo_bool = True if print_logo == 'true' or print_logo == 'True' else False
 #print_ports_bool = True if print_ports == 'true' or print_ports == 'True' else False
@@ -64,7 +67,7 @@ if ports_file_bool and os.path.exists(ports_file_name):
     ports = []
     with open(ports_file_name) as f:
         ports.append(f.read().splitlines())
-    print("PORTS : " + ports_file_name)
+    print("PORTS : " + ports_file_name + "[ "+str(len(ports[0]))+" ELEMENT ]")
 else:
     ports = [[21, 22, 23, 25, 38, 43, 80, 999, 109, 110, 115, 118, 119, 143,  
     194, 220, 443, 540, 585, 591, 1112, 1433, 1443, 3128, 3197,
@@ -98,6 +101,7 @@ def portscan(port, arr = False):
         pass
     
 def scan_host(target):
+    print(target + " START SCANNING")
     for element in ports[0]:
         portscan(int(element))
         #t.start()
@@ -120,8 +124,14 @@ def scan_host_multi(target):
 
 if hosts_file_bool:
     for target in hosts[0]:
-        scan_host_multi(target)
+        if thread_bool:
+            scan_host_multi(target)
+        else:
+            scan_host(target)
 else:
-    scan_host_multi(target)
+    if thread_bool:
+        scan_host_multi(target)
+    else:
+        scan_host(target)
 
 input("\nPress enter...")
