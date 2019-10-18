@@ -3,14 +3,13 @@
 #  [ Stolar Studio ]
 #
 
-ver = "0.1.3"
+ver = "0.1.4"
 
 import threading 
 import socket
 import os
 import configparser
-
-
+#import argparse
 
 if not os.path.exists("settings.txt"):
     config = configparser.ConfigParser()
@@ -22,6 +21,7 @@ if not os.path.exists("settings.txt"):
     config.add_section("Visual")
     config.set("Visual", "print-logo", "true")
     #config.set("Visual", "print-ports", "false")
+    #config.set("Visual", "progress-bar", "true")
     with open("settings.txt", "w") as config_file:
         config.write(config_file)
 try:
@@ -33,6 +33,7 @@ try:
     ports_file_name = config.get("Settings", "ports-file-name")
     print_logo = config.get("Visual", "print-logo")
     #print_ports = config.get("Visual", "print-ports")
+    #progress_bar = config.get("Visual", "progress-bar")
 except:
     print("ERROR READ SETTINGS FILE")
     input("\nPress enter...")
@@ -43,6 +44,7 @@ ports_file_bool = True if ports_file == 'true' or ports_file == 'True' else Fals
 
 print_logo_bool = True if print_logo == 'true' or print_logo == 'True' else False
 #print_ports_bool = True if print_ports == 'true' or print_ports == 'True' else False
+#progress_bar_bool = True if progress_bar == 'true' or progress_bar == 'True' else False
 
 if print_logo_bool:
     print("""
@@ -63,7 +65,6 @@ if ports_file_bool and os.path.exists(ports_file_name):
     with open(ports_file_name) as f:
         ports.append(f.read().splitlines())
     print("PORTS : " + ports_file_name)
-    print(ports)
 else:
     ports = [[21, 22, 23, 25, 38, 43, 80, 999, 109, 110, 115, 118, 119, 143,  
     194, 220, 443, 540, 585, 591, 1112, 1433, 1443, 3128, 3197,
@@ -76,7 +77,6 @@ if hosts_file_bool and os.path.exists(hosts_file_name):
         hosts.append(f.read().splitlines())
     print("HOSTS : ", end = '')
     print(' | '.join(hosts[0]))
-    #print(hosts)
 else:
     target = input('Enter host : ')
     
