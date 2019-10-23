@@ -3,11 +3,12 @@
 #  [ Stolar Studio ]
 #
 
-ver = "0.1.5"
+ver = "0.1.6"
 
 import threading 
 import socket
 import os
+import sys
 import configparser
 #import argparse
 
@@ -22,7 +23,7 @@ if not os.path.exists("settings.txt"):
     config.add_section("Visual")
     config.set("Visual", "print-logo", "true")
     #config.set("Visual", "print-ports", "false")
-    #config.set("Visual", "progress-bar", "true")
+    config.set("Visual", "progress-bar", "true")
     with open("settings.txt", "w") as config_file:
         config.write(config_file)
 try:
@@ -35,7 +36,7 @@ try:
     thread = config.get("Settings", "thread")
     print_logo = config.get("Visual", "print-logo")
     #print_ports = config.get("Visual", "print-ports")
-    #progress_bar = config.get("Visual", "progress-bar")
+    progress_bar = config.get("Visual", "progress-bar")
 except:
     print("ERROR READ SETTINGS FILE")
     input("\nPress enter...")
@@ -47,17 +48,16 @@ thread_bool = True if thread == 'true' or thread == 'True' else False
 
 print_logo_bool = True if print_logo == 'true' or print_logo == 'True' else False
 #print_ports_bool = True if print_ports == 'true' or print_ports == 'True' else False
-#progress_bar_bool = True if progress_bar == 'true' or progress_bar == 'True' else False
+progress_bar_bool = True if progress_bar == 'true' or progress_bar == 'True' else False
 
 if print_logo_bool:
     print("""
-       _____ _                     _____           _      _____                                 
-      / ____| |                   |  __ \         | |    / ____|                                
-     | (___ | |_ ___  _ __   ___  | |__) |__  _ __| |_  | (___   ___ __ _ _ __  _ __   ___ _ __ 
-      \___ \| __/ _ \| '_ \ / _ \ |  ___/ _ \| '__| __|  \___ \ / __/ _` | '_ \| '_ \ / _ \ '__|
-      ____) | || (_) | | | |  __/ | |  | (_) | |  | |_   ____) | (_| (_| | | | | | | |  __/ |   
-     |_____/ \__\___/|_| |_|\___| |_|   \___/|_|   \__| |_____/ \___\__,_|_| |_|_| |_|\___|_|                                                                                                                                                                              
-    """)
+   _____ _                     _____           _      _____                                 
+  / ____| |                   |  __ \         | |    / ____|                                
+ | (___ | |_ ___  _ __   ___  | |__) |__  _ __| |_  | (___   ___ __ _ _ __  _ __   ___ _ __ 
+  \___ \| __/ _ \| '_ \ / _ \ |  ___/ _ \| '__| __|  \___ \ / __/ _` | '_ \| '_ \ / _ \ '__|
+  ____) | || (_) | | | |  __/ | |  | (_) | |  | |_   ____) | (_| (_| | | | | | | |  __/ |   
+ |_____/ \__\___/|_| |_|\___| |_|   \___/|_|   \__| |_____/ \___\__,_|_| |_|_| |_|\___|_|    """)
 else:
     print("Stone Port Scanner")
 print("Ver : "+ver)
@@ -87,6 +87,7 @@ print('-' * 35)
 
 open_ports = []
 
+
 def portscan(port, arr = False):  
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
     s.settimeout(0.5)  
@@ -100,20 +101,43 @@ def portscan(port, arr = False):
     except:
         pass
     
+    
 def scan_host(target):
     print(target + " START SCANNING")
     for element in ports[0]:
         portscan(int(element))
-        #t.start()
     print(target + " STOP SCANNING")
     
 def scan_host_multi(target):
     print(target + " START SCANNING")
+    
+    if progress_bar_bool:
+        pb_i = -2
+        pb_max = len(ports[0]) 
+    
     for element in ports[0]:
+        
         t = threading.Thread(target=portscan, kwargs={'port': int(element), 'arr': True}) 
         t.start()
+
+        if progress_bar_bool:
+            pb_i += 1
+        
+            sys.stdout.write('\r')
+            part = float(pb_i)/(pb_max - 2)
+            symbols_num = int(30 * part)
+            sys.stdout.write("SCANNING [%-30s] %3.2f%%" % ('='*symbols_num, part*100))
+            sys.stdout.flush()
+
+            #pb_i += 1
+    if progress_bar_bool:
+        sys.stdout.write("\n")
     while True:
+        
         if threading.active_count() < 3:
+            
+            #sys.stdout.write("\n")
+            
             if len(open_ports) > 0:
                 print('\n'.join(open_ports))
             else:
